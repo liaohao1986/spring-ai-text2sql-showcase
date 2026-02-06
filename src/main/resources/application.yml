@@ -1,18 +1,70 @@
+server:
+  port: 8080
+  address: 0.0.0.0
+
 spring:
   application:
     name: spring-ai-text2sql-showcase
   
-  # 数据库配置
+  # 多数据源配置
   datasource:
-    url: jdbc:mysql://localhost:3306/text2sql_db?connectTimeout=60000&socketTimeout=60000&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    # 设置默认数据源（JPA 需要这个）
+    jdbc-url: jdbc:mysql://120.133.0.220:4406/ticket_distribution?connectTimeout=60000&socketTimeout=60000&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password: root123
+    username: ticket
+    password: dfj2!@dVN8dVLOsd
+    hikari:
+      pool-name: DefaultHikariPool
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+    
+    # 分销数据源 (主数据源)
+    ticket-distribution:
+      jdbc-url: jdbc:mysql://120.133.0.220:4406/ticket_distribution?connectTimeout=60000&socketTimeout=60000&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      username: ticket
+      password: dfj2!@dVN8dVLOsd
+      hikari:
+        pool-name: TicketDistributionHikariPool
+        maximum-pool-size: 20
+        minimum-idle: 5
+        connection-timeout: 30000
+        idle-timeout: 600000
+        max-lifetime: 1800000
+    
+    # 订单数据源
+    ticket-booking:
+      jdbc-url: jdbc:mysql://120.133.0.220:4406/ticket_booking?connectTimeout=60000&socketTimeout=60000&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      username: ticket
+      password: dfj2!@dVN8dVLOsd
+      hikari:
+        pool-name: TicketBookingHikariPool
+        maximum-pool-size: 20
+        minimum-idle: 5
+        connection-timeout: 30000
+        idle-timeout: 600000
+        max-lifetime: 1800000
+    
+    # 本地数据源
+    text2sql-db:
+      jdbc-url: jdbc:mysql://localhost:3306/text2sql_db?connectTimeout=60000&socketTimeout=60000&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      username: root
+      password: 12345678
+      hikari:
+        pool-name: Text2sqlDbHikariPool
+        maximum-pool-size: 15
+        minimum-idle: 3
+        connection-timeout: 30000
+        idle-timeout: 600000
+        max-lifetime: 1800000
 
-  # JPA 配置
+  # JPA 配置 (仅对主数据源生效)
   jpa:
-    hibernate:
-      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
@@ -23,7 +75,7 @@ spring:
   ai:
     openai:
       base-url: https://api.deepseek.com
-      api-key: ${DEEPSEEK_API_KEY}
+      api-key: sk-1e257ffdcaa8422ca0ee4e0b5c453db3
       chat:
         options:
           model: deepseek-chat
@@ -32,7 +84,9 @@ spring:
 # 日志配置
 logging:
   level:
-    org.springframework.ai: ERROR
+    org.springframework.ai: DEBUG
+    org.springframework.ai.chat.client: DEBUG
+    org.springframework.ai.chat: DEBUG
     com.example: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE

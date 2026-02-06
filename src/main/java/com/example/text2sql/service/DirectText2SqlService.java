@@ -1,15 +1,18 @@
 package com.example.text2sql.service;
 
-import com.example.text2sql.util.SqlUtils;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 
-import java.util.List;
-import java.util.Map;
+import com.example.text2sql.service.tool.DatabaseTool;
+import com.example.text2sql.util.SqlUtils;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Text2SQL 核心服务
@@ -103,4 +106,9 @@ public class DirectText2SqlService implements Text2SqlService {
 
         return sql;
     }
+
+	@Override
+	public Text2SqlResult processQueryWithTableNames(String userQuery, String tableNames) {
+		return null;
+	}
 }

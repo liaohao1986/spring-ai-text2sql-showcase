@@ -1,12 +1,13 @@
 package com.example.text2sql;
 
-import com.example.text2sql.service.DatabaseTool;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.example.text2sql.service.tool.DatabaseTool;
 
 @SpringBootTest
 class TableCommentTest {

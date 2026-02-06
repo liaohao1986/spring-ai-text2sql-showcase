@@ -1,5 +1,6 @@
-package com.example.text2sql.service;
+package com.example.text2sql.service.tool;
 
+import com.example.text2sql.config.DataSourceRouter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
@@ -11,14 +12,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 简化的数据库 Schema 服务
- * 只提供核心功能：获取表列表和表 schema
+ * 多数据源数据库 Schema 服务
+ * 支持主从数据源的数据库操作
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DatabaseTool {
-    private final JdbcTemplate jdbcTemplate;
+    private final DataSourceRouter dataSourceRouter;
 
     /**
      * 获取所有业务表列表
@@ -33,7 +34,8 @@ public class DatabaseTool {
                     AND TABLE_TYPE = 'BASE TABLE'
                     ORDER BY TABLE_NAME
                     """;
-
+            log.info("获取数据库中所有表的名称列表");
+            JdbcTemplate jdbcTemplate = dataSourceRouter.getCurrentDataSource();
             return jdbcTemplate.queryForList(sql, String.class);
         } catch (Exception e) {
             log.error("获取表列表失败", e);
@@ -46,6 +48,7 @@ public class DatabaseTool {
      */
     @Tool(name = "getTableSchema", description = "获取指定表的完整结构信息，包括列定义、主键、唯一键等")
     public String getTableSchema(@ToolParam(description = "表名") String tableName) {
+    	log.info("tableName: {}",tableName);
         return getDatabaseSchema(tableName);
     }
 
@@ -88,6 +91,7 @@ public class DatabaseTool {
         if (table != null) {
             sql = sql.replace("1=1", "t.TABLE_NAME='" + table + "'");
         }
+        JdbcTemplate jdbcTemplate = dataSourceRouter.getCurrentDataSource();
         List<Map<String, Object>> results = jdbcTemplate.queryForList(sql);
 
         StringBuilder schema = new StringBuilder();
@@ -144,6 +148,7 @@ public class DatabaseTool {
 
             schema.append(";\n\n");
         }
+        log.info("获取数据库中所有表的结构信息");
         return schema.toString();
     }
 
@@ -162,11 +167,15 @@ public class DatabaseTool {
                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?
                 ORDER BY ORDINAL_POSITION
                 """;
+        log.info("获取指定表的所有列信息");
+        JdbcTemplate jdbcTemplate = dataSourceRouter.getCurrentDataSource();
         return jdbcTemplate.queryForList(sql, tableName);
     }
 
     @Tool(name = "executeQuery", description = "执行 SQL 查询并返回结果（仅支持 SELECT 查询）")
     public List<Map<String, Object>> executeQuery(@ToolParam(description = "SQL 查询语句") String sql) {
+        JdbcTemplate jdbcTemplate = dataSourceRouter.getCurrentDataSource();
+        log.info("执行 SQL 查询并返回结果（仅支持 SELECT 查询）");
         return jdbcTemplate.queryForList(sql);
     }
 }
